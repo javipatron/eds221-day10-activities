@@ -5,7 +5,6 @@ editor: visual
 ---
 
 ```{r}
-
 library(tidyverse)
 library(here)
 library(skimr)
@@ -14,7 +13,6 @@ library(skimr)
 Download the data
 
 ```{r}
-
 snow <- read_csv(here::here("data", "ntl20_v6.csv"))
 ice <- read_csv(here::here("data", "ntl33_v7.csv"), na = c("-999", ""))
 ```
@@ -27,7 +25,7 @@ ggplot(data = ice, aes(x = lakeid, y = lakeid )) +
   geom_boxplot(width = 0.3, fill = NA, size = 1, outlier.color = NA)
 ```
 
--   Find the mean ice cover duration in Madison Lake Area by year (i.e., you\'ll only be grouping by the year variable here). Understanding check: what are you finding the mean of here? Why are there multiple observations for each year?)
+-   Find the mean ice cover duration in Madison Lake Area by year (i.e., you'll only be grouping by the year variable here). Understanding check: what are you finding the mean of here? Why are there multiple observations for each year?)
 
 ```{r}
 
@@ -42,7 +40,8 @@ mean_duration <- ice %>%
 ```{r}
 ggplot(data = mean_duration, aes(x = year4, y = mean_duration)) +
   geom_line(color = "blue") + 
-  ylim(min = 0, max = 200)
+  ylim(min = 0, max = 200) +
+  geom_abline()
 ```
 
 Explanation of the graph: Slightly flutating to lower mean duration, the ice over time is slightly decreasing
@@ -59,10 +58,11 @@ mean_air_temp <- snow |>
 -   Create an exploratory visualization of mean winter temperatures for the Madison Lake Area. Add a sentence or two below this exploratory graph describing the overall trend(s) you observe.
 
 ```{r}
-
+reg <- lm(mean_temp~year4, data = mean_air_temp)
 ggplot(mean_air_temp, aes(x= year4, y=mean_temp)) +
-  geom_point(aes(color=year4)) +
-  ylim(-15,5)
+  geom_point() +
+  ylim(-15,5) +
+  abline(reg, col = "red")
 
 ```
 
@@ -76,7 +76,7 @@ ice_weather_join <- mean_duration |>
 
 ```
 
--   Create an exploratory scatterplot of mean winter temperatures versus mean ice duration. Add a sentence or two below this exploratory graph describing the overall trend(s) you observe.
+-   Create an exploratory scatter plot of mean winter temperatures versus mean ice duration. Add a sentence or two below this exploratory graph describing the overall trend(s) you observe.
 
 ```{r}
 ggplot(data = ice_weather_join, aes(x = mean_temp, y = mean_duration)) +

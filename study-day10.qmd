@@ -1,0 +1,154 @@
+---
+title: "study-day10"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+
+```
+
+Download the data
+
+```{r}
+folder <- '/Users/javipatron/Documents/MEDS/Courses/eds221/eds221-day10-activities/data'
+
+ice_duration <- read_csv("/Users/javipatron/Documents/MEDS/Courses/eds221/eds221-day10-activities/data/ntl33_v7.csv", na = "-999")
+
+snow_info <- read_csv("/Users/javipatron/Documents/MEDS/Courses/eds221/eds221-day10-activities/data/ntl20_v6.csv")
+```
+
+Explore the Data
+
+```{r}
+
+summary(ice_duration)
+names(ice_duration)
+
+
+```
+
+Create a Viz
+
+```{r}
+
+ggplot(ice_duration, aes(x = lakeid, y = ice_duration)) + 
+  geom_boxplot() +
+  geom_jitter()
+```
+
+```{r}
+
+ggplot(data = ice_duration, aes(x = lakeid, y = ice_duration)) +
+  geom_jitter(width = 0.2, color = "cyan4") +
+  geom_boxplot(width = 0.3, fill = NA, size = 1, outlier.color = "red")
+```
+
+```{r}
+
+mean_ice <- ice_duration |> 
+  group_by(year4) |> 
+  summarize(mean_ice = mean(ice_duration, na.rm = TRUE))
+
+head(mean_ice)
+
+```
+
+```{r}
+
+ggplot(mean_ice, aes(x= year4, y = mean)) +
+  geom_point(size = 1, aes(color = mean)) +
+  scale_color_stepsn(
+    colors = c("darkblue", "dodgerblue", "orange"),
+    breaks = seq(from = 40, to = 200, by =40)) +
+  geom_smooth(method = lm, color = "cyan4")
+  
+```
+
+Find the mean air temp; Find the mean air temperature (using the daily average air temperature - adjusted) in Madison Lake Area **by year** using **only observations from winter months (December, January, February)**
+
+```{r}
+names(snow_info)
+mean_air_temp <- snow_info |> 
+  filter(month %in% c(1,2,12)) |> 
+  group_by(year4) |> 
+  summarise(mean_snow_temp = mean(ave_air_temp_adjusted, na.rm = TRUE))
+
+summary(mean_air_temp)
+
+```
+
+```{r}
+
+ggplot(mean_air_temp, aes(x = year4, y = mean)) +
+  geom_line(aes(color = mean)) +
+  geom_smooth(method = lm,
+              formula = my.formula,
+              fill = "pink",
+              alpha = 0.5,
+              linetype = "solid",
+              size = 0.5) +
+  stat_poly_eq(formula = my.formula,
+               aes(label = paste(..eq.label.., ..rr.label.., sep=  "~~~")), 
+               size = 4, 
+               color = "cyan4") +
+  scale_color_gradient(low = "black", high = "cyan4")
+```
+
+```{r}
+joined <- mean_ice |> 
+  full_join(mean_air_temp)
+```
+
+```{r}
+names(joined)
+ggplot(joined, aes(x =mean_ice, y = mean_snow_temp)) +
+  geom_point() + 
+  geom_boxplot(fill = NA) +
+  geom_smooth(method = lm,
+              formula = my.formula,
+              color = "cyan4") +
+  stat_poly_eq(formula = my.formula,
+               aes(label = paste(..eq.label.., ..rr.label.., sep=  "~~~~~")), 
+               size = 3, 
+               color = "cyan4",
+               label.y = "top",
+               label.x = "right")
+```
+
+Explore the dates from 1970 till now
+
+```{r}
+
+library(lubridate)
+
+global_warming <- ice_duration |> 
+  filter(year4 >= 1970 ) |> 
+  mutate(ice_off = ymd(ice_off)) |> 
+  mutate(day_ice_off = yday(ice_off))
+
+ggplot(global_warming, aes(x = year4, y = day_ice_off)) +
+  geom_point()
+  
+```
+
+```{r}
+
+icecover <- read_csv(here("data","ntl33_v8.csv"), na = "-999")
+
+
+thaw_dates <- icecover |> 
+  filter(year4 >= 1970) |> 
+  mutate(ice_off = lubridate::ymd(ice_off)) |> 
+  mutate(day_ice_off = lubridate::yday(ice_off))
+
+ggplot(thaw_dates, aes(x = year4, y = day_ice_off)) +
+  geom_point()
+
+
+class(icecover[ice_off])
+
+```
